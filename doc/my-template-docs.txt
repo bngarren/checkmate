@@ -1,4 +1,4 @@
-*my-template-docs.txt*     For Neovim >= 0.8.0    Last change: 2024 January 18
+checkmate.txt*     For Neovim >= 0.8.0    Last change: 2025 April 06
 
 ==============================================================================
 Table of Contents                         *my-template-docs-table-of-contents*
