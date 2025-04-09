@@ -7,7 +7,6 @@ M.ns = vim.api.nvim_create_namespace("checkmate")
 
 -- Default configuration with documentation using LuaLS annotations
 ---@class CheckmateConfig
----@field opt string Your main option
 ---@field enabled boolean Whether the plugin is enabled
 ---@field notify boolean Whether to show notifications
 ---@field log_level "trace"|"debug"|"info"|"warn"|"error" Log level
@@ -15,7 +14,6 @@ M.ns = vim.api.nvim_create_namespace("checkmate")
 ---@field log_to_file boolean Whether to log to a file
 ---@field keys table<string, string|false> Keymappings (false to disable)
 M.defaults = {
-  opt = "Hello!",
   enabled = true,
   notify = true,
   log_level = "info",
@@ -27,14 +25,8 @@ M.defaults = {
     ["<leader>Tn"] = "create", -- Create todo item
   },
   todo_markers = {
-    unchecked = {
-      primary = "□ ",
-      alternate = "[ ] ",
-    },
-    checked = {
-      primary = "✔ ",
-      alternate = "[x] ",
-    },
+    unchecked = "□",
+    checked = "✔",
   },
 }
 

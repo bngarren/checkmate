@@ -1,47 +1,37 @@
-# A Neovim Plugin Template
+<div align="center">
 
-![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/ellisonleao/nvim-plugin-template/lint-test.yml?branch=main&style=for-the-badge)
-![Lua](https://img.shields.io/badge/Made%20with%20Lua-blueviolet.svg?style=for-the-badge&logo=lua)
+# checkmate.nvim
 
-A template repository for Neovim plugins.
+### A simple Todo plugin
 
-## Using it
+[![Lua](https://img.shields.io/badge/Lua-blue.svg?style=for-the-badge&logo=lua)](http://www.lua.org)
+[![Neovim](https://img.shields.io/badge/Neovim%200.8+-green.svg?style=for-the-badge&logo=neovim)](https://neovim.io)
 
-Via `gh`:
+<img alt="Checkmate Mate" height="220" src="./assets/checkmate-logo.png" />
+</div>
 
+
+## ☑️ Installation
+
+- install using [lazy.nvim](https://github.com/folke/lazy.nvim)
+
+```lua
+{
+    "bngarren/checkmate.nvim",
+    opts = {
+        -- your configuration here
+        -- or leave empty to use defaults
+        todo_markers = {
+            unchecked = "□",
+            checked = "✔",
+  },
+
+    }
+}
 ```
-$ gh repo create my-plugin -p ellisonleao/nvim-plugin-template
+
+## ☑️ Usage
+
+1. Create a `.todo` file
 ```
-
-Via github web page:
-
-Click on `Use this template`
-
-![](https://docs.github.com/assets/cb-36544/images/help/repository/use-this-template-button.png)
-
-## Features and structure
-
-- 100% Lua
-- Github actions for:
-  - running tests using [plenary.nvim](https://github.com/nvim-lua/plenary.nvim) and [busted](https://olivinelabs.com/busted/)
-  - check for formatting errors (Stylua)
-  - vimdocs autogeneration from README.md file
-  - luarocks release (LUAROCKS_API_KEY secret configuration required)
-
-### Plugin structure
-
-```
-.
-├── lua
-│   ├── plugin_name
-│   │   └── module.lua
-│   └── plugin_name.lua
-├── Makefile
-├── plugin
-│   └── plugin_name.lua
-├── README.md
-├── tests
-│   ├── minimal_init.lua
-│   └── plugin_name
-│       └── plugin_name_spec.lua
 ```

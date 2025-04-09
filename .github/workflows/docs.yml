@@ -1,19 +1,26 @@
+name: docs
 on:
   push:
     branches:
       - main
-name: docs
+    paths:
+      - README.md
+      - .github/workflows/panvimdoc.yml
+
+permissions:
+  contents: write
 
 jobs:
   docs:
     runs-on: ubuntu-latest
+    name: pandoc to vimdoc
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: panvimdoc
         uses: kdheepak/panvimdoc@main
         with:
-          vimdoc: my-template-docs
-          version: "Neovim >= 0.8.0"
+          vimdoc: checkmate.nvim
+          version: "Neovim >= 0.10.0"
           demojify: true
           treesitter: true
       - name: Push changes
@@ -23,3 +30,4 @@ jobs:
           commit_user_name: "github-actions[bot]"
           commit_user_email: "github-actions[bot]@users.noreply.github.com"
           commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
+          branch: ${{ github.head_ref }}
