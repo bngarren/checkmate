@@ -226,6 +226,10 @@ M.get_todo_item_at_position = function(bufnr, row, col)
   end
 
   -- Check if this line contains a task list marker
+  -- We must perform this check manually (without TS) as the cursor, when at the beginning of a line that
+  -- contains an indented list item, could technically be in the paragraph node (block continuation) of the
+  -- previous line. Todo actions at this cursor position should act on the same line's todo item even.
+  -- Thus, in this situation, we manually adjust the cursor 'col' so that it appears to be within the correct todo item
   local marker_pattern = "^%s*[-+*]%s+%[[ xX]%]"
   if line_text:match(marker_pattern) then
     -- Find the position of the task marker
