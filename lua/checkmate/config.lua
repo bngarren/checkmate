@@ -11,11 +11,31 @@ M.ns = vim.api.nvim_create_namespace("checkmate")
 ---@field enabled boolean Whether the plugin is enabled
 ---@field notify boolean Whether to show notifications
 ---@field log_level "trace"|"debug"|"info"|"warn"|"error" Log level
+---@field log_to_buffer boolean Whether to log to a buffer
+---@field log_to_file boolean Whether to log to a file
+---@field keys table<string, string|false> Keymappings (false to disable)
 M.defaults = {
   opt = "Hello!",
   enabled = true,
   notify = true,
   log_level = "info",
+  log_to_buffer = false,
+  log_to_file = false,
+  -- Default keymappings
+  keys = {
+    ["<leader>Tt"] = "toggle", -- Toggle todo item
+    ["<leader>Tn"] = "create", -- Create todo item
+  },
+  todo_markers = {
+    unchecked = {
+      primary = "□ ",
+      alternate = "[ ] ",
+    },
+    checked = {
+      primary = "✔ ",
+      alternate = "[x] ",
+    },
+  },
 }
 
 -- Runtime state
@@ -42,11 +62,6 @@ function M.setup(opts)
 
   M._loaded = true
 
-  -- Log configuration when debugging
-  if M.options.log_level == "debug" then
-    vim.notify("Checkmate config: " .. vim.inspect(M.options), vim.log.levels.DEBUG)
-  end
-
   -- Auto-start if enabled
   if M.options.enabled then
     M.start()
@@ -59,11 +74,6 @@ function M.start()
   end
   M._running = true
 
-  if M.options.log_level == "debug" then
-    vim.notify("Checkmate started", vim.log.levels.DEBUG)
-  end
-
-  -- Setup autocmds, initialize state, etc.
   vim.api.nvim_create_autocmd("VimLeavePre", {
     group = vim.api.nvim_create_augroup("checkmate", { clear = true }),
     callback = function()
