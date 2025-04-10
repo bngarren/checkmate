@@ -10,6 +10,12 @@
 <img alt="Checkmate Mate" height="220" src="./assets/checkmate-logo.png" />
 </div>
 
+Inspired by the [Todo+](https://github.com/fabiospampinato/vscode-todo-plus) VS Code extension (credit to @[fabiospampinato](https://github.com/fabiospampinato))
+
+- Plain text/Markdown format
+- Custom symbols
+- Custom colors
+
 
 ## ☑️ Installation
 
@@ -32,6 +38,23 @@
 
 ## ☑️ Usage
 
-1. Create a `.todo` file
+1. Create a `.todo` file or use an existing one
+
 ```
+--
 ```
+
+2. Create todo items!
+
+- Use mapped keys, or
+- Create them manually using typical Markdown format:
+
+```md
+- [ ] Unchecked todo
+- [x] Checked todo
+```
+
+## ☑️ Commands
+- `:Checkmate toggle` - Toggle the todo item under the cursor
+- `:Checkmate create` - Convert the current line to a todo item
+
