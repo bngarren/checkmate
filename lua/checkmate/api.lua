@@ -10,7 +10,7 @@ function M.setup(bufnr)
   parser.convert_markdown_to_unicode(bufnr)
 
   -- Apply highlighting
-  parser.apply_highlighting(bufnr)
+  parser.apply_adv_highlighting(bufnr)
 
   -- Enable Treesitter highlighting
   vim.cmd([[TSBufEnable highlight]])
@@ -80,7 +80,7 @@ function M.setup_autocmds(bufnr)
     callback = function()
       if vim.b[bufnr].checkmate_was_modified then
         parser.convert_markdown_to_unicode(bufnr)
-        parser.apply_highlighting(bufnr)
+        -- parser.apply_highlighting(bufnr)
         vim.b[bufnr].checkmate_was_modified = false
       end
     end,
@@ -100,7 +100,7 @@ function M.setup_autocmds(bufnr)
     group = augroup,
     buffer = bufnr,
     callback = function()
-      parser.apply_highlighting(bufnr)
+      parser.apply_adv_highlighting(bufnr)
     end,
   })
 end
@@ -234,7 +234,7 @@ function M.create_todo()
   if has_list_marker then
     -- Convert existing list item to task list item with Unicode
     local list_marker_capture = util.build_empty_list_pattern(parser.list_item_markers)
-    new_line = line:gsub("^" .. list_marker_capture, "%1 " .. config.options.todo_markers.unchecked .. " ")
+    new_line = line:gsub("^" .. list_marker_capture, "%1" .. config.options.todo_markers.unchecked .. " ")
   else
     -- Create new task list item with Unicode
     new_line = indent .. "- " .. config.options.todo_markers.unchecked .. " " .. line:gsub("^%s*", "")

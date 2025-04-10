@@ -28,6 +28,13 @@ M.defaults = {
     unchecked = "□",
     checked = "✔",
   },
+  style = {
+    list_marker = { fg = "#888888" }, -- Subdued gray for list marker
+    unchecked = { fg = "#ff9500", bold = true }, -- Orange for unchecked box
+    checked = { fg = "#00cc66", bold = true }, -- Green for checked box
+    unchecked_content = { fg = "#ffffff" }, -- White for unchecked content
+    checked_content = { fg = "#aaaaaa", strikethrough = true }, -- Gray with strikethrough
+  },
 }
 
 -- Runtime state

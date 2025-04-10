@@ -24,6 +24,11 @@ end
 
 -- Setup Treesitter queries for todo items
 M.setup = function()
+  local config = require("checkmate.config")
+  local log = require("checkmate.log")
+  log.debug("Checked pattern is: " .. M.getCheckedTodoPattern())
+  log.debug("Unchecked pattern is: " .. M.getUncheckedTodoPattern())
+
   local todo_query = [[
 ; Capture list items and their content for structure understanding
 (list_item) @list_item
@@ -34,21 +39,16 @@ M.setup = function()
 ((list_marker_plus) @list_marker_plus)
 ((list_marker_star) @list_marker_star)
 ]]
-
-  local log = require("checkmate.log")
-  log.debug("Checked pattern is: " .. M.getCheckedTodoPattern())
-  log.debug("Unchecked pattern is: " .. M.getUncheckedTodoPattern())
-
   -- Register the query
   vim.treesitter.query.set("markdown", "todo_items", todo_query)
 
-  -- Define highlight groups for Unicode todo markers
+  -- Define highlight groups from config
   local highlights = {
-    CheckmateUnchecked = { fg = "#ff9500", bold = true }, -- Orange for unchecked
-    CheckmateChecked = { fg = "#00cc66", bold = true }, -- Green for checked
-    CheckmateUncheckedContent = { fg = "#ffffff" }, -- White for unchecked content
-    CheckmateCheckedContent = { fg = "#aaaaaa", strikethrough = true }, -- Gray with strikethrough for checked
-    CheckmateListMarker = { fg = "#eeeeee", blend = 50 },
+    CheckmateUnchecked = config.options.style.unchecked,
+    CheckmateChecked = config.options.style.checked,
+    CheckmateUncheckedContent = config.options.style.unchecked_content,
+    CheckmateCheckedContent = config.options.style.checked_content,
+    CheckmateListMarker = config.options.style.list_marker,
   }
 
   -- Apply highlight groups
@@ -161,6 +161,117 @@ M.apply_highlighting = function(bufnr)
   )
 end
 
+M.apply_adv_highlighting = function(bufnr)
+  local config = require("checkmate.config")
+  local log = require("checkmate.log")
+
+  bufnr = bufnr or vim.api.nvim_get_current_buf()
+
+  -- Clear existing extmarks
+  vim.api.nvim_buf_clear_namespace(bufnr, config.ns, 0, -1)
+
+  -- Get the root node for the buffer
+  local parser = vim.treesitter.get_parser(bufnr, "markdown")
+  if not parser then
+    log.debug("No parser available for markdown", { module = "parser" })
+    return
+  end
+
+  local tree = parser:parse()[1]
+  if not tree then
+    log.debug("Failed to parse buffer", { module = "parser" })
+    return
+  end
+
+  local root = tree:root()
+
+  -- Query for list_items
+  local query = vim.treesitter.query.parse(
+    "markdown",
+    [[
+    (list_item) @list_item
+    (paragraph) @paragraph
+  ]]
+  )
+
+  -- Iterate through all matches
+  for id, node, _ in query:iter_captures(root, bufnr, 0, -1) do
+    local name = query.captures[id]
+
+    if name == "list_item" then
+      local start_row, start_col, end_row, end_col = node:range()
+
+      -- Get the first line to check for todo markers
+      local first_line = vim.api.nvim_buf_get_lines(bufnr, start_row, start_row + 1, false)[1] or ""
+      local todo_type = M.getTodoItemType(first_line)
+
+      if todo_type then
+        -- 1. Find and highlight the list marker
+        local list_marker_match = first_line:match("^%s*([" .. table.concat(M.list_item_markers, "") .. "])")
+        if list_marker_match then
+          local list_marker_pos = first_line:find(list_marker_match, 1, true)
+          if list_marker_pos then
+            list_marker_pos = list_marker_pos - 1 -- 0-based indexing
+
+            vim.api.nvim_buf_set_extmark(bufnr, config.ns, start_row, list_marker_pos, {
+              end_row = start_row,
+              end_col = list_marker_pos + 1,
+              hl_group = "CheckmateListMarker",
+              priority = 101,
+            })
+          end
+        end
+
+        -- 2. Find and highlight the todo marker
+        local todo_marker = todo_type == "checked" and config.options.todo_markers.checked
+          or config.options.todo_markers.unchecked
+
+        local todo_marker_pos = first_line:find(todo_marker, 1, true)
+        if todo_marker_pos then
+          todo_marker_pos = todo_marker_pos - 1 -- 0-based indexing
+
+          local todo_marker_hl = todo_type == "checked" and "CheckmateChecked" or "CheckmateUnchecked"
+
+          vim.api.nvim_buf_set_extmark(bufnr, config.ns, start_row, todo_marker_pos, {
+            end_row = start_row,
+            end_col = todo_marker_pos + #todo_marker,
+            hl_group = todo_marker_hl,
+            priority = 102,
+          })
+
+          -- 3. Find where the actual content starts
+          local content_start_pos = todo_marker_pos + #todo_marker
+          local content_pos = first_line:find("[^%s]", content_start_pos + 1)
+
+          -- 4. Apply content highlighting to the actual content portion only
+          if content_pos then
+            content_pos = content_pos - 1 -- 0-based indexing
+            local content_hl = todo_type == "checked" and "CheckmateCheckedContent" or "CheckmateUncheckedContent"
+
+            -- For the first line, highlight from content start to end of line
+            vim.api.nvim_buf_set_extmark(bufnr, config.ns, start_row, content_pos, {
+              end_row = start_row,
+              end_col = #first_line,
+              hl_group = content_hl,
+              priority = 100,
+            })
+
+            -- For subsequent lines in the list item, if any
+            if end_row > start_row then
+              vim.api.nvim_buf_set_extmark(bufnr, config.ns, start_row + 1, 0, {
+                end_row = end_row,
+                end_col = end_col,
+                hl_group = content_hl,
+                priority = 100,
+              })
+            end
+          end
+        end
+      end
+    end
+  end
+end
+
 -- Function to find a todo item at cursor position
 M.get_todo_item_at_position = function(bufnr, row, col)
   local log = require("checkmate.log")
@@ -260,14 +371,17 @@ M.get_todo_item_at_position = function(bufnr, row, col)
       )
 
       -- Return the node info with todo type if available
-      return {
-        type = M.getTodoItemType(item_line), -- This will be nil if no todo marker was found
-        range = {
-          start = { row = start_row, col = start_col },
-          ["end"] = { row = end_row, col = end_col },
-        },
-        node = current_node,
-      }
+      local type = M.getTodoItemType(item_line)
+      if type then
+        return {
+          type = type,
+          range = {
+            start = { row = start_row, col = start_col },
+            ["end"] = { row = end_row, col = end_col },
+          },
+          node = current_node,
+        }
+      end
     end
     current_node = current_node:parent()
   end
