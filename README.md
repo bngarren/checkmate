@@ -54,34 +54,29 @@ These will automatically convert when you leave insert mode!
 
 # ☑️ Commands
 
-### :Checkmate toggle
-
+:Checkmate toggle
 : Toggle the todo item under the cursor
 
-### :Checkmate create
-
+:Checkmate create
 : Convert the current line to a todo item
 
 # ☑️ Config
 
-### :enabled
-
+enabled
 : Default: true
 
-### :notify
+notify
+: Whether to use notifications
 
-: Default: true
-Whether to use notifications
-
+    Default: true
 
 ## log
 
-### level
+level
+: Any messages above this level will be logged
+"debug" | "trace" | "info" | "warn" | "error" | "fatal"
 
-: "debug" | "trace" | "info" | "warn" | "error" | "fatal"
-Default: "info"
+    Default: "info"
 
-    Any messages above this level will be logged
-
-### use_buffer
+use_buffer
 
