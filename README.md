@@ -12,12 +12,11 @@
 
 Inspired by the [Todo+](https://github.com/fabiospampinato/vscode-todo-plus) VS Code extension (credit to @[fabiospampinato](https://github.com/fabiospampinato))
 
-- Plain text/Markdown format
+- Stored as plain text/Markdown format
 - Custom symbols
 - Custom colors
 
-
-## ☑️ Installation
+# ☑️ Installation
 
 - install using [lazy.nvim](https://github.com/folke/lazy.nvim)
 
@@ -27,34 +26,46 @@ Inspired by the [Todo+](https://github.com/fabiospampinato/vscode-todo-plus) VS 
     opts = {
         -- your configuration here
         -- or leave empty to use defaults
-        todo_markers = {
-            unchecked = "□",
-            checked = "✔",
-  },
+    },
 
     }
 }
 ```
 
-## ☑️ Usage
+# ☑️ Usage
 
-1. Create a `.todo` file or use an existing one
+#### 1. Open a `.todo` file or create a new one
 
-```
---
-```
+As of now, the plugin is only activated when a buffer with `.todo` extension is opened.
 
-2. Create todo items!
+#### 2. Create todo items!
 
-- Use mapped keys, or
+- Use mapped keys or commands
+
+or
+
 - Create them manually using typical Markdown format:
 
 ```md
 - [ ] Unchecked todo
 - [x] Checked todo
 ```
+These will automatically convert when you leave insert mode!
 
-## ☑️ Commands
-- `:Checkmate toggle` - Toggle the todo item under the cursor
-- `:Checkmate create` - Convert the current line to a todo item
+# ☑️ Commands
 
+#### `:Checkmate toggle`
+Toggle the todo item under the cursor
+
+#### `:Checkmate create`
+Convert the current line to a todo item
+
+# ☑️ Config
+
+#### `enabled`
+Default: true
+
+#### `notify`
+Default: true
+
+Whether to use notifications

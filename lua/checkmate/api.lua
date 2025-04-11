@@ -1,9 +1,9 @@
 local M = {}
-local Config = require("checkmate.config")
-local util = require("checkmate.util")
-local parser = require("checkmate.parser")
+-- local Config = require("checkmate.config")
+-- local util = require("checkmate.util")
 
 function M.setup(bufnr)
+  local parser = require("checkmate.parser")
   bufnr = bufnr or vim.api.nvim_get_current_buf()
 
   -- Convert markdown to Unicode
@@ -26,8 +26,9 @@ function M.setup(bufnr)
 end
 
 function M.setup_keymaps(bufnr)
+  local config = require("checkmate.config")
   -- Apply keymappings from config
-  local keys = Config.options.keys or {}
+  local keys = config.options.keys or {}
 
   for key, action in pairs(keys) do
     -- Skip if mapping is explicitly disabled with false
@@ -59,6 +60,7 @@ function M.setup_keymaps(bufnr)
 end
 
 function M.setup_autocmds(bufnr)
+  local parser = require("checkmate.parser")
   -- Set up auto-commands for saving and InsertLeave
   local augroup = vim.api.nvim_create_augroup("CheckmateTodoConversion_" .. bufnr, { clear = true })
 
@@ -109,6 +111,7 @@ end
 function M.convert_manual_todo_items(bufnr)
   local log = require("checkmate.log")
   local config = require("checkmate.config")
+  local parser = require("checkmate.parser")
   local util = require("checkmate.util")
   bufnr = bufnr or vim.api.nvim_get_current_buf()
 
@@ -158,6 +161,9 @@ end
 -- Toggle the todo item under the cursor
 function M.toggle_todo()
   local log = require("checkmate.log")
+  local config = require("checkmate.config")
+  local parser = require("checkmate.parser")
+  local util = require("checkmate.util")
   local bufnr = vim.api.nvim_get_current_buf()
   local cursor = vim.api.nvim_win_get_cursor(0)
   local row = cursor[1] - 1 -- 0-indexed
@@ -189,12 +195,12 @@ function M.toggle_todo()
 
   if todo_item.type == "unchecked" then
     -- Replace □ with ✔
-    local unchecked = util.build_unicode_todo_pattern(parser.list_item_markers, Config.options.todo_markers.unchecked)
-    new_line = line:gsub(unchecked, "%1" .. Config.options.todo_markers.checked, 1)
+    local unchecked = util.build_unicode_todo_pattern(parser.list_item_markers, config.options.todo_markers.unchecked)
+    new_line = line:gsub(unchecked, "%1" .. config.options.todo_markers.checked, 1)
   else
     -- Replace ✔ with □
-    local checked = util.build_unicode_todo_pattern(parser.list_item_markers, Config.options.todo_markers.checked)
-    new_line = line:gsub(checked, "%1" .. Config.options.todo_markers.unchecked, 1)
+    local checked = util.build_unicode_todo_pattern(parser.list_item_markers, config.options.todo_markers.checked)
+    new_line = line:gsub(checked, "%1" .. config.options.todo_markers.unchecked, 1)
   end
 
   if new_line and new_line ~= line then
@@ -214,6 +220,9 @@ end
 -- Create a new todo item from the current line
 function M.create_todo()
   local config = require("checkmate.config")
+  local parser = require("checkmate.parser")
+  local util = require("checkmate.util")
+
   local bufnr = vim.api.nvim_get_current_buf()
   local cursor = vim.api.nvim_win_get_cursor(0)
   local row = cursor[1] - 1 -- 0-indexed

@@ -1,5 +1,4 @@
 -- A structured logging module for Checkmate
-local Config = require("checkmate.config")
 
 local M = {}
 
@@ -28,40 +27,41 @@ local log_buffer = nil
 local log_window = nil
 local log_file = nil
 
+local function ensure_default_log_dir()
+  local log_dir = vim.fs.joinpath(vim.fn.stdpath("data"), "checkmate")
+  vim.fn.mkdir(log_dir, "p") -- 'p' ensures parent dirs are created if needed
+  return log_dir
+end
+
 -- Determine the plugin root directory and create log path
-local function get_log_file_path()
-  -- Get the directory of the current file (log.lua)
-  local info = debug.getinfo(1, "S")
-
-  -- Determine OS separator
-  local os_sep = vim.fn.has("win32") == 1 and "\\" or "/"
-
-  -- Extract source path and convert to absolute path
-  local source = string.sub(info.source, 2) -- Remove the '@' prefix
-
-  -- Get plugin root directory (parent of parent of current file)
-  local plugin_dir = vim.fn.fnamemodify(source, ":h:h:p")
-
-  -- Create logs directory if it doesn't exist
-  local logs_dir = plugin_dir .. os_sep .. "logs"
-  if vim.fn.isdirectory(logs_dir) == 0 then
-    vim.fn.mkdir(logs_dir, "p")
+local function get_log_file_path(customPath)
+  if customPath and type(customPath) == "string" then
+    -- Expand ~ and env vars (like $HOME)
+    local expanded = vim.fn.expand(customPath)
+    -- Turn relative paths into absolute paths
+    return vim.fn.fnamemodify(expanded, ":p")
   end
-
-  -- Create log file path with timestamp
-  local timestamp = os.date("%Y%m%d")
-  local log_path = logs_dir .. os_sep .. "checkmate_" .. timestamp .. ".log"
-
-  return log_path
+  local log_dir = ensure_default_log_dir()
+  -- Return a OS system path to "~/.local/share/nvim/checkmate/current.log"
+  return vim.fs.joinpath(log_dir, "current.log")
 end
 
 -- Initializes the log buffer if it doesn't exist
 local function ensure_log_buffer()
+  -- Case 1: Our module's log_buffer is still valid
   if log_buffer and vim.api.nvim_buf_is_valid(log_buffer) then
     return log_buffer
   end
 
-  log_buffer = vim.api.nvim_create_buf(false, true) -- Not listed, scratch buffer
+  -- Case 2: A buffer with our name exists somewhere else
+  local existing_bufnr = vim.fn.bufnr("Checkmate Debug Log")
+  if existing_bufnr ~= -1 and vim.api.nvim_buf_is_valid(existing_bufnr) then
+    log_buffer = existing_bufnr
+    return log_buffer
+  end
+
+  -- Case 3: Need to create a new buffer
+  log_buffer = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_set_option_value("buftype", "nofile", { buf = log_buffer })
   vim.api.nvim_set_option_value("filetype", "log", { buf = log_buffer })
   vim.api.nvim_buf_set_name(log_buffer, "Checkmate Debug Log")
@@ -98,9 +98,10 @@ end
 
 -- Main logging function (internal)
 local function log(level, level_name, msg, opts)
+  local config = require("checkmate.config")
   -- Get current config options (in case they've changed)
-  local options = Config.options
-  local current_level = level_map[options.log_level] or M.levels.INFO
+  local options = config.options
+  local current_level = level_map[options.log.level] or M.levels.INFO
 
   -- Skip if current level is higher than this message's level
   if level < current_level then
@@ -111,7 +112,7 @@ local function log(level, level_name, msg, opts)
   local formatted = format_log(level_name, msg, opts)
 
   -- Output to the log buffer
-  if options.log_to_buffer then
+  if options.log.use_buffer then
     local bufnr = ensure_log_buffer()
     local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
 
@@ -127,7 +128,7 @@ local function log(level, level_name, msg, opts)
   end
 
   -- Output to file
-  if options.log_to_file and log_file then
+  if options.log.use_file and log_file then
     log_file:write(formatted .. "\n")
     log_file:flush()
   end
@@ -177,15 +178,6 @@ function M.open()
   end
 end
 
--- Opens the log file in a new buffer
-function M.open_file()
-  if log_file then
-    vim.cmd("edit " .. get_log_file_path())
-  else
-    vim.notify("No log file is currently active", vim.log.levels.WARN)
-  end
-end
-
 -- Closes the log window if open
 function M.close()
   if log_window and vim.api.nvim_win_is_valid(log_window) then
@@ -203,9 +195,10 @@ end
 
 -- Setup the logger
 function M.setup()
+  local config = require("checkmate.config")
   -- Start file logging if configured
-  if Config.options.log_to_file then
-    local log_file_path = get_log_file_path()
+  if config.options.log.use_file then
+    local log_file_path = get_log_file_path(config.options.log.file_path)
     local ok, file = pcall(io.open, log_file_path, "a")
 
     if ok then
@@ -224,6 +217,9 @@ function M.shutdown()
   if log_file then
     log_file:close()
     log_file = nil
+  end
+  if log_buffer then
+    vim.api.nvim_buf_delete(log_buffer, { force = true })
   end
 end
 

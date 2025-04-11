@@ -4,25 +4,17 @@
 ---@class MyModule
 local M = {}
 
--- Get config module
-local Config = require("checkmate.config")
-
----@param opts CheckmateConfig?
+---@param opts checkmate.Config?
 M.setup = function(opts)
-  -- Validate options
-  if opts ~= nil and type(opts) ~= "table" then
-    error("Setup options must be a table")
-  end
-
-  Config.setup(opts)
-
   local config = require("checkmate.config")
+
+  config.setup(opts)
 
   -- Initialize the logger
   local log = require("checkmate.log")
   log.setup()
 
-  log.debug(config)
+  log.debug(config.options)
   -- Log setup information
   log.debug("Checkmate plugin initializing", { module = "setup" })
 
@@ -48,10 +40,7 @@ M.setup = function(opts)
     end,
   })
 
-  if not vim.g.checkmate_loaded then
-    vim.g.checkmate_loaded = true
-    log.info("Checkmate plugin loaded successfully")
-  end
+  log.info("Checkmate plugin loaded successfully")
 end
 
 function M.setup_buffer()
