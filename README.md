@@ -57,6 +57,10 @@ These will automatically convert when you leave insert mode!
 :Checkmate toggle
 : Toggle the todo item under the cursor
 
+    ```vimdoc
+    :Checkmate toggle
+    ```
+
 :Checkmate create
 : Convert the current line to a todo item
 
@@ -76,7 +80,7 @@ level
 : Any messages above this level will be logged
 "debug" | "trace" | "info" | "warn" | "error" | "fatal"
 
-    Default: "info"
+Default: "info"
 
 use_buffer
 
