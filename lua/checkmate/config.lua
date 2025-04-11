@@ -11,7 +11,8 @@ M.ns = vim.api.nvim_create_namespace("checkmate")
 ---    | "trace"
 ---    | "debug"
 ---    | "info"
----    | "warn" | "error"
+---    | "warn"
+---    | "error"
 ---    | "fatal"
 ---    | vim.log.levels.DEBUG
 ---    | vim.log.levels.ERROR
